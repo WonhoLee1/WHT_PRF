@@ -1,7 +1,0 @@
-{
-    "job_name": "viscnet_cpe4h_vanwaals_n2",
-    "stress_r2": 0.9999998484934555,
-    "strain_r2": 0.49143660795889776,
-    "stress_rmse": 0.00021906302133094648,
-    "strain_rmse": 0.0050508608863971466
-}
