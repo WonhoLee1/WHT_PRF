@@ -1,0 +1,26 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+# Abaqus simulation outputs
+*.odb
+*.msg
+*.prt
+*.dat
+*.sta
+*.com
+*.sim
+*.log
+*.lck
+*.023
+*.mdl
+*.stt
+*.res
+*.h3d
+*.rad

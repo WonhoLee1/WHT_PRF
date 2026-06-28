@@ -1,0 +1,7 @@
+{
+    "job_name": "x_viscnet_c3d8_ogden_n2",
+    "stress_r2": -3641.7185292659296,
+    "strain_r2": -236724.09115746836,
+    "stress_rmse": 1.3936931549443385,
+    "strain_rmse": 0.253103685578605
+}

@@ -1,0 +1,7 @@
+{
+    "job_name": "x_viscnet_cax4r_vanwaals_n2",
+    "stress_r2": -3565.6864867110285,
+    "strain_r2": -762.6614737358424,
+    "stress_rmse": 1.3935587540439942,
+    "strain_rmse": 0.013003859025112653
+}

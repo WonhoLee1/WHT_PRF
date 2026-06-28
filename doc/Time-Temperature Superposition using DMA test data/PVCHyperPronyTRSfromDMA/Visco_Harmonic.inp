@@ -1,0 +1,111 @@
+*HEADING
+ Unit Cube template file for running Parametric Study
+*PREPRINT,ECHO=NO,MODEL=YES
+**
+*Parameter
+** These 3 parameters will be modified by the psf script
+Temp     = 60.0
+Freq_Hz  = 0.1
+applied_strain = 0.0001
+**
+*Parameter
+e_mean   = 0.0
+Freq_rad = Freq_Hz * 6.283185308
+Number_Cycles = 3.0
+time_1_cycle= 1/Freq_Hz
+time_3_cycles=time_1_cycle*Number_Cycles
+dt     = time_1_cycle / 200.0
+min_dt = dt / 100.0
+max_dt = dt
+**
+*NODE, Nset=NAll
+501, 0.0, 0.0, 0.0
+502, 1.0, 0.0, 0.0
+503, 1.0, 1.0, 0.0
+504, 0.0, 1.0, 0.0
+505, 0.0, 0.0, 1.0
+506, 1.0, 0.0, 1.0
+507, 1.0, 1.0, 1.0
+508, 0.0, 1.0, 1.0
+*NSET, NSET=UNIAXIALLOAD
+505,
+*NSET, NSET=UNIAXIALLOAD_0
+505,
+*NSET, NSET=UNIAXIALEQN1_0
+506, 507, 508
+*ELEMENT, ELSET=One, TYPE=C3D8RH
+501,501,502,503,504,505,506,507,508
+*EQUATION
+2
+UNIAXIALEQN1_0, 3, 1, UNIAXIALLOAD_0, 3, -1
+**
+*SOLID SECTION, ELSET=One, MATERIAL=Visco
+**
+*MATERIAL, NAME=Visco
+*DENSITY
+1.1e-14,
+*Hyperelastic, NeoHooke, Moduli=Instantaneous
+400, 0.0
+*Viscoelastic, time=prony
+** gi, kappai, taui
+0.129718, 0,	1e-08
+0.061878, 0,	1e-07
+0.126819, 0,	1e-06
+0.106301, 0,	1e-05
+0.142345, 0,	0.0001
+0.125563, 0,	0.001
+0.13042, 0,	0.01
+0.104886, 0,	0.1
+0.049972, 0,	1
+0.012487, 0,	10
+0.003626, 0,	100
+0.001352, 0,	1000
+0.000753, 0,	10000
+0.001067, 0,	100000
+*TRS, Definition=WLF
+75.0, 10.98, 40.76
+**
+*Boundary
+UNIAXIALLOAD,1
+501,1,3
+502,3
+503,3
+504,1
+504,3
+508,1
+**
+*Initial conditions, type=temperature
+NAll, <Temp>
+**
+*Amplitude, name=Harmonic, definition=periodic
+** Frequency here is specified in rad/sec
+1, <Freq_rad>, 0, 0
+0.0, <applied_strain>
+********************************
+*Step, nlgeom, inc=90000, name=First_3_Cycles
+*Visco, cetol=1.0e-3
+<dt>, <time_3_cycles>, <min_dt>, <max_dt>
+**
+*Boundary, amplitude=Harmonic
+UNIAXIALLOAD, 3, 3, 1.0
+**
+*OUTPUT,FIELD,var=preselect
+*OUTPUT,HISTORY
+*NODE OUTPUT,NSET=UNIAXIALLOAD
+U3, RF3
+*END STEP
+********************************
+********************************
+*Step, nlgeom, inc=90000, name=Last_Cycle
+*Visco, cetol=1.0e-3
+<dt>, <time_1_cycle>, <min_dt>, <max_dt>
+**
+*Boundary, amplitude=Harmonic
+UNIAXIALLOAD, 3, 3, 1.0
+**
+*OUTPUT,FIELD,var=preselect
+*OUTPUT,HISTORY
+*NODE OUTPUT,NSET=UNIAXIALLOAD
+U3, RF3
+*END STEP
+********************************

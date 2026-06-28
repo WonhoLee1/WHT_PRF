@@ -1,0 +1,173 @@
+from odbAccess import *
+import win32com.client
+import sys
+import os
+import math
+import numpy
+
+#Input parameters
+studyName = 'Temp_Freq'
+spreadsheetName = 'PVC_Hyper_Prony_TRS_Final.xlsx'
+worksheetName = 'Sim Results from PSF'
+templateName = 'Visco_Harmonic'
+tempUnit = '(C)'
+modUnit = '(MPa)'
+firstRow = 2
+executeJobs = True
+N = 1
+applied_strain = 1.0e-4
+domain_applied_strain = (applied_strain,)
+
+domaintemp = (60.0, 65.0, 70.0, 75.0, 80.0, 85.0, 90.0, 95.0, 100.0)
+domainfreq = (0.1, 0.15, 0.22, 0.32, 0.46, 0.68, 1., 1.5, 2.2, 3.2, 4.6, 6.8, 10., 14.6, 21.5, 31.6, 46.4, 68.0, 100.0)
+
+#domaintemp = (60.0, 100.0)
+#domainfreq = (0.1, 1., 10., 100.0)
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+def getResults(odbName, freq, N, applied_strain):
+    """Method to extract the stress Vs strain data"""
+
+    if os.path.isfile(odbName):
+        odb = openOdb(odbName)
+        step = odb.steps.values()[-1]
+        for hrName in step.historyRegions.keys():
+            if hrName.startswith('E'):
+                connOut = step.historyRegions[hrName]
+            elif hrName.startswith('N'):
+                pullOut = step.historyRegions[hrName]
+        rf = pullOut.historyOutputs['RF3'].data
+        u = pullOut.historyOutputs['U3'].data
+        omega = 2.0*math.pi*freq
+        (t, tmps, tmpl) = zip(*map(lambda e,s: (e[0],s[1]*math.sin(omega*e[0])*omega/(math.pi*N*applied_strain),s[1]*math.cos(omega*e[0])*omega/(math.pi*N*applied_strain)), u, rf)) #tmps = temp storage, tmpl = temp loss
+        storage = numpy.trapz(tmps, t)
+        loss = numpy.trapz(tmpl, t)
+        return storage, loss
+    else:
+        print "   Couldn't find %s. Skipping." % odbName
+        return ('', '')
+        return None
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~        
+def excelColumns(numColumns):
+    """Usage: excelColumns(numColumns)
+    This function will generate a list containing the column names for Excel from 'A' to the corresponding column name specified by numColumns"""
+    
+    if type(numColumns)!=type(1):
+        raise TypeError('numColumns is not an integer')
+    elif numColumns<=0:
+        raise ValueError('numColumns must be greater than 0')
+    else:
+        alphaBase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        columns = []
+        columns2 = []
+        mult = int(math.ceil((numColumns)/26.0))
+        for m in range(mult):
+            alpha1 = iter(alphaBase[m]*26)
+            alpha2 = iter(alphaBase)
+            columns2.append([a+b for a,b in zip(alpha1, alpha2)])
+        mult = 0
+        for n in range(numColumns):
+            mult = n/26
+            if mult == 0:
+                columns.append(alphaBase[n])
+            else:
+                columns.append(columns2[mult-1][n-mult*26])
+
+    return columns        
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#---
+#---Create jobs, execute jobs, and delete all files in the extensions list---
+#---
+
+bergs = ParStudy(par=('Temp','Freq_Hz','applied_strain'), name=studyName)
+
+bergs.define(DISCRETE, par='Temp', domain=domaintemp)
+bergs.sample(NUMBER, par='Temp', number=len(domaintemp))
+
+bergs.define(DISCRETE, par='Freq_Hz', domain=domainfreq)
+bergs.sample(NUMBER, par='Freq_Hz', number=len(domainfreq))
+
+bergs.define(DISCRETE, par='applied_strain', domain=domain_applied_strain)
+bergs.sample(NUMBER, par='applied_strain', number=len(domain_applied_strain))
+
+bergs.combine(MESH)
+bergs.generate(template=templateName)
+if executeJobs:
+    print 'Executing all jobs...'
+    bergs.execute('ALL')
+    print '   ...Finished.'
+    print 'Deleting unnecessary files...'
+    path = os.getcwd()
+    files = os.listdir(path)
+    ftd = [i for i in files if templateName in i] #Files To Delete, only deletes files that include templateName in their file name
+    extensions = ['.com', '.lck', '.ipm', '.stt', '.mdl', '.prt',  '.dat', '.res', '.fil', '.msg', '.log', '.par', '.pes', '.pmg', '.sim']
+    for file in ftd:
+        for ext in extensions:
+            if (file[-4:]==ext): 
+                try:
+                    os.remove(file)
+                except WindowsError as e:
+                    print e
+else:
+    print 'Skipping job execution and using existing .odbs (if they exist).'
+
+#---
+#---Begin post-processing---
+#---
+
+subD = dict(map(lambda z: [z, ['','']], domainfreq))
+resultsD = dict(map(lambda x: [x,subD.copy()], domaintemp))
+col1 = ['Temp %s' % tempUnit, 'Storage', 'Mod %s' % modUnit]
+col2 = ['', 'Loss', 'Mod %s' % modUnit]
+frcol = ['Freq', '(Hz)']
+
+#Results in dictionary with {temperature: {frequency: [storage, loss]}}
+
+columns = excelColumns(1 + 3*len(domaintemp))
+
+print 'Calculating storage and loss moduli...'
+for job in bergs.job.values():
+    
+    temperature = job.design[0]
+    fr = job.design[1]
+    #print 'Processing Frequency ', fr,'Hertz, temperature ', temperature
+    storage, loss = getResults(odbName='%s_%s.odb' % (job.root, job.designName), freq=fr, N=N, applied_strain=applied_strain)
+    resultsD[temperature][fr] = [storage, loss]
+
+print '    ...Finished.'
+print 'Writing data to Excel document %s spreadsheet %s' % (spreadsheetName, worksheetName)
+
+# open Excel
+xl = win32com.client.Dispatch("Excel.Application")
+
+# open the spreadsheet
+ss = xl.Workbooks.Open(os.path.join(os.getcwd(), spreadsheetName))
+wsNames = map(lambda x: x.Name, ss.Worksheets)
+if worksheetName in wsNames:
+    ws = ss.Worksheets[worksheetName]
+    ws.Range('A1', 'XFD10000').ClearContents()
+    #Lists need to be in the following format to be written in an column in Excel: [[item1], [item2],...]
+    f2 = map(lambda x: [x], frcol[:] + list(domainfreq))
+    endrow = 4 + len(domainfreq)
+    ws.Range('A3', 'A%s' % endrow).Value = (f2)
+    columns.pop(0); columns.pop(0)
+    for tempkey in domaintemp:
+        f = resultsD[tempkey]
+        st = col1[:] + map(lambda x: f[x][0], domainfreq)
+        lo = [tempkey] + col2[1:] + map(lambda x: f[x][1], domainfreq)
+        dtw = map(lambda x, y: [x,y], st, lo) #data to write
+        ws.Range('%s2' % columns.pop(0), '%s%s' %(columns.pop(0), endrow)).Value = dtw
+        try:
+            columns.pop(0)
+        except IndexError:
+            pass
+    ss.Save()
+print '    ...Finished. Quitting Excel'        
+
+ss.Close()
+xl.Quit()
+    
+print

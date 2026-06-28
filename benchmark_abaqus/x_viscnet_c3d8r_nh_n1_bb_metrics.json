@@ -1,0 +1,7 @@
+{
+    "job_name": "x_viscnet_c3d8r_nh_n1_bb",
+    "stress_r2": -133.8464573653873,
+    "strain_r2": -43.689884205006784,
+    "stress_rmse": 1.35357909724326,
+    "strain_rmse": 0.025624928245313112
+}

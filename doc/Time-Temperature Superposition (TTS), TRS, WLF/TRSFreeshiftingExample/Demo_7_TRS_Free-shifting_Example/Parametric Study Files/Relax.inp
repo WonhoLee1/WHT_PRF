@@ -1,0 +1,117 @@
+*Heading
+ Template file for running Parametric Study
+ Run Parametric Study using commnad "abaqus script=Bower_TRS_Example.psf"
+ Unit Cube in Simple Shear, Stress Relaxation
+ Loading:
+      Step 1:  Impose linear ramp of shear strain in 1 second.
+      Step 2:  Hold shear strain constant for 30,000 secs.
+ Linear Viscoelastic + TRS material model
+**
+*Parameter
+temperature = 27.0
+max_strain  =  0.01
+**
+*Material, Name=mat
+** 
+** Units: [length]=meter, [force] = Newton, [time] = seconds, [temperature] = Celsius
+**        [stress]=GPa
+** Reference Temperature for TRS is 27 degrees C
+** 
+** Linear viscoelasticity with TRS
+*Hyperelastic, Neohooke, Moduli=instant
+** 
+11.975, 0.0
+*Viscoelastic, Time=Prony
+** g_i, kappa_i, tau_i
+0.20763, 0.0, 1694.
+0.41734, 0.0, 168038.
+0.16637, 0.0, 17225100.
+0.10436, 0.0, 17440800000.
+*TRS, Definition=WLF
+27, 14.94, 38.13
+**
+** PARTS
+**
+*Part, Name=UnitCube
+*Node, Nset=all
+1, 0, 0, 0
+2, 0, 0, 1
+3, 1, 0, 1
+4, 1, 0, 0
+5, 0, 1, 0
+6, 0, 1, 1
+7, 1, 1, 1
+8, 1, 1, 0
+*Nset, Nset=nLeft
+1, 2, 5, 6
+*Nset, Nset=nBot
+1, 2, 3, 4
+*Nset, Nset=nBack
+1, 4, 5, 8
+*Nset, Nset=nFront
+2, 3, 6, 7
+*Nset, Nset=nTop
+5, 6, 7, 8
+*Nset, Nset=nRight
+3, 4, 7, 8
+*Element, Type=C3D8RH, Elset=all
+1, 1, 2, 3, 4, 5, 6, 7, 8
+*Solid Section, Elset=all, Material=mat
+*End Part
+**
+*Assembly, Name=Assembly
+*Instance, Name=Cube, Part=UnitCube
+*End Instance
+*End Assembly
+** 
+*Boundary
+Cube.nBot, 1
+Cube.nBot, 2
+Cube.nTop, 2
+Cube.nBack, 3
+*Initial Conditions, Type=temperature
+Cube.all, <temperature>
+**
+*Time Points, Name=TimePts
+1,
+2,
+3,
+5,
+10,
+20,
+30,
+50,
+100,
+200,
+300,
+500,
+1000,
+2000,
+3000,
+5000,
+10000,
+20000,
+30000,
+*Amplitude, Name=load_hold, Time=Total
+0, 0, 1, <max_strain>, 50000, <max_strain>
+**************************************************
+*Step, Nlgeom, Inc=999
+*Visco, Cetol=1.0e-3
+0.1, 1,,0.1
+*Boundary, Amplitude=load_hold
+Cube.nTop, 1,1, 1
+**
+*Output, Field, Time points=TimePts
+*Node Output
+u
+*Element Output
+s, le, temp
+*Output, History, Time Points=TimePts
+*Element Output, Elset=Cube.all
+s12, le12, temp
+*End Step
+**************************************************
+*Step, Nlgeom, Inc=999
+*Visco, Cetol=1.0e-3
+0.1, 30000,,1000
+*End Step

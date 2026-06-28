@@ -1,0 +1,23 @@
+[project]
+name = "wht-prf"
+version = "0.1.0"
+description = "JAX-based Data-Driven Parallel Rheological Framework (PRF)"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "jax>=0.4.26",
+    "jaxlib>=0.4.26",
+    "optax>=0.2.2",
+    "flax>=0.8.2",
+    "numpyro>=0.14.0",
+    "numpy>=1.26.0",
+    "pandas>=2.0.0",
+    "matplotlib>=3.8.0",
+    "koreanize-matplotlib>=0.1.1",
+    "optuna>=3.6.0",
+    "pytest>=8.0.0"
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

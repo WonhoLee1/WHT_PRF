@@ -1,0 +1,110 @@
+from odbAccess import openOdb
+import win32com.client
+from textRepr import prettyPrint as pp
+        
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Automates the running of 5 different stress relaxation tests 
+# Each Stress Relaxation test loads the specimen at different temperatures
+# Temperatures are: 27, 35, 45, 55, 65 C
+#
+# The script computes the shear modulus=shear strain, S12, divided by 
+# the shear strain (0.01).
+#
+# The script saves the(Time, Shear Modulus) data back to an Excel sheet. 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+studyName = 'SSSR'
+spreadsheetName = 'Bower_TRS_Example.xlsx'
+
+bergs = ParStudy(par=('temperature'), name=studyName)
+domaineamp = (27, 35, 45, 55, 65)
+bergs.define(DISCRETE, par='temperature', domain=domaineamp)
+bergs.sample(VALUES, par='temperature', values=domaineamp)
+bergs.combine(MESH)
+bergs.generate(template='Relax')
+bergs.execute('ALL')
+
+import sys
+import os
+path=os.getcwd()
+files=os.listdir(path)
+extensions=['.com', '.lck', '.ipm', '.stt', '.mdl', '.prt', '.dat', '.sim',
+            '.res', '.fil', '.log', '.par', '.pes', '.pmg', '.sta', '.msg']
+for outFile in files:
+    for ext in extensions:
+        if (outFile[-4:]==ext): os.remove(outFile)
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+def getResults(odbName):
+    """Method to extract the stress Vs strain data"""
+    
+#    if os.path.isfile(odbName):
+#        odb = openOdb(odbName)
+#        step = odb.steps.values()[-1]
+
+    if os.path.isfile(odbName):
+        odb = openOdb(odbName)
+        evs = []
+        inFirstStep = True
+        for step in odb.steps.values():
+            totalTime = step.totalTime
+            for hrName in step.historyRegions.keys():
+                if hrName.startswith('E'):
+                    connOut = step.historyRegions[hrName]
+                    pullOut = step.historyRegions[hrName]
+            if inFirstStep:
+                inFirstStep = False
+            else:
+                s12 = pullOut.historyOutputs['S12'].data
+#               add 1 to time, since this is step time and I want total time
+#               divide stress by strain=0.01 to get shear modulus
+                s = tuple(map(lambda x: (x[0]+1,x[1]/0.01), s12))
+                evs.append(s)
+
+        return evs
+    else:
+        print 'Not found. Skipping.'
+        return None
+        
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+xl = win32com.client.Dispatch("Excel.Application")
+ss = xl.Workbooks.Open(os.path.join(os.getcwd(), spreadsheetName))
+
+for job in bergs.job.values():
+
+    print 'Processing ',job.design[0],'strain excitation'
+
+    evs1 = []
+    evs1 = getResults(odbName='%s_%s.odb' % (job.root, job.designName))
+
+    try:
+        len(evs1)
+    except:
+        print 'No data in ODB file'
+        continue
+    
+    nData = len(evs1[0])+6
+
+    worksheetName = 'Sim_%s' % job.design[0]
+    foundWs = False
+
+    for ws in ss.Worksheets:
+        if ws.Name == worksheetName:
+            foundWs = True
+            break
+    if not foundWs:
+        print 'Worksheet %s not found. Skipping' % worksheetName
+
+    endCell = 'B%s' % (nData)
+
+    ws.Range('A7', 'B10000').ClearContents()
+    ws.Range('A7', endCell).Value = evs1[0]
+
+ss.Save()
+ss.Close()
+xl.Quit()
+
+print
+print 'Completed !'
+print

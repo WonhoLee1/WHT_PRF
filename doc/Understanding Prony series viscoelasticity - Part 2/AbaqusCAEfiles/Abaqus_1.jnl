@@ -1,0 +1,94 @@
+# -*- coding: mbcs -*-
+from part import *
+from material import *
+from section import *
+from assembly import *
+from step import *
+from interaction import *
+from load import *
+from mesh import *
+from optimization import *
+from job import *
+from sketch import *
+from visualization import *
+from connectorBehavior import *
+mdb.models['Model-1'].Material(name='test')
+mdb.models['Model-1'].materials['test'].Elastic(table=((1.0, 0.0), ))
+mdb.models['Model-1'].materials['test'].Viscoelastic(domain=TIME, table=((
+    0.01391303, -0.000794439, 0.0, 0.0, 0.0001), (0.10400722, -0.0574031, 0.0, 
+    0.0, 0.001), (0.13503927, -0.252462, 0.0, 0.0, 0.01), (0.1380959, 
+    -0.452411, 0.0, 0.0, 0.1), (0.13715763, -0.652403, 0.0, 0.0, 1.0), (
+    0.1246725, -0.851617, 0.0, 0.0, 10.0), (0.094557817, -0.955506, 0.0, 0.0, 
+    30.0), (0.055454518, -0.986711, 0.0, 0.0, 60.0), (0.034580235, -0.995008, 
+    0.0, 0.0, 100.0), (0.011759329, -0.999433, 0.0, 0.0, 300.0), (0.0058908346, 
+    -0.999858, 0.0, 0.0, 600.0), (0.0035359343, -0.999949, 0.0, 0.0, 1000.0), (
+    0.0011788838, -0.999994, 0.0, 0.0, 3000.0), (0.00058945312, -0.999999, 0.0, 
+    0.0, 6000.0), (0.00035367331, -0.999999, 0.0, 0.0, 10000.0), (
+    9.7163202e-05, -1.0, 0.0, 0.0, 36400.0), (5.8945682e-05, -1.0, 0.0, 0.0, 
+    60000.0), (3.5367411e-05, -1.0, 0.0, 0.0, 100000.0)), time=FREQUENCY_DATA)
+mdb.JobFromInputFile(inputFileName='test_1', name='test_1', type=SYNTAXCHECK)
+mdb.jobs['test_1'].submit()
+mdb.jobs['test_1'].waitForCompletion()
+# Save by TDK on 2014_01_09-12.49.49; build 6.13-1 2013_05_15-22.28.56 126354
+from part import *
+from material import *
+from section import *
+from assembly import *
+from step import *
+from interaction import *
+from load import *
+from mesh import *
+from optimization import *
+from job import *
+from sketch import *
+from visualization import *
+from connectorBehavior import *
+mdb.models['Model-1'].materials['test'].viscoelastic.setValues(domain=TIME, 
+    table=((0.0013961998, -7.97513e-06, 0.0, 0.0, 1e-05), (0.01391303, 
+    -0.000794439, 0.0, 0.0, 0.0001), (0.10400722, -0.0574031, 0.0, 0.0, 0.001), 
+    (0.13503927, -0.252462, 0.0, 0.0, 0.01), (0.1380959, -0.452411, 0.0, 0.0, 
+    0.1), (0.13715763, -0.652403, 0.0, 0.0, 1.0), (0.1246725, -0.851617, 0.0, 
+    0.0, 10.0), (0.094557817, -0.955506, 0.0, 0.0, 30.0), (0.055454518, 
+    -0.986711, 0.0, 0.0, 60.0), (0.034580235, -0.995008, 0.0, 0.0, 100.0), (
+    0.011759329, -0.999433, 0.0, 0.0, 300.0), (0.0058908346, -0.999858, 0.0, 
+    0.0, 600.0), (0.0035359343, -0.999949, 0.0, 0.0, 1000.0), (0.0011788838, 
+    -0.999994, 0.0, 0.0, 3000.0), (0.00058945312, -0.999999, 0.0, 0.0, 6000.0), 
+    (0.00035367331, -0.999999, 0.0, 0.0, 10000.0), (9.7163202e-05, -1.0, 0.0, 
+    0.0, 36400.0), (5.8945682e-05, -1.0, 0.0, 0.0, 60000.0), (3.5367411e-05, 
+    -1.0, 0.0, 0.0, 100000.0)), time=FREQUENCY_DATA)
+mdb.JobFromInputFile(inputFileName='test_3', name='test_3', type=SYNTAXCHECK)
+mdb.jobs['test_3'].submit()
+mdb.jobs['test_3'].waitForCompletion()
+# Save by TDK on 2014_01_14-09.57.02; build 6.13-1 2013_05_15-22.28.56 126354
+from part import *
+from material import *
+from section import *
+from assembly import *
+from step import *
+from interaction import *
+from load import *
+from mesh import *
+from optimization import *
+from job import *
+from sketch import *
+from visualization import *
+from connectorBehavior import *
+mdb.models['Model-1'].materials.changeKey(fromName='test', toName=
+    'test_errtol=default')
+mdb.models['Model-1'].Material(name='test_errtol=001', objectToCopy=
+    mdb.models['Model-1'].materials['test_errtol=default'])
+mdb.models['Model-1'].materials['test_errtol=001'].viscoelastic.setValues(
+    domain=TIME, errtol=0.001, table=((0.0013961998, -7.97513e-06, 0.0, 0.0, 
+    1e-05), (0.01391303, -0.000794439, 0.0, 0.0, 0.0001), (0.10400722, 
+    -0.0574031, 0.0, 0.0, 0.001), (0.13503927, -0.252462, 0.0, 0.0, 0.01), (
+    0.1380959, -0.452411, 0.0, 0.0, 0.1), (0.13715763, -0.652403, 0.0, 0.0, 
+    1.0), (0.1246725, -0.851617, 0.0, 0.0, 10.0), (0.094557817, -0.955506, 0.0, 
+    0.0, 30.0), (0.055454518, -0.986711, 0.0, 0.0, 60.0), (0.034580235, 
+    -0.995008, 0.0, 0.0, 100.0), (0.011759329, -0.999433, 0.0, 0.0, 300.0), (
+    0.0058908346, -0.999858, 0.0, 0.0, 600.0), (0.0035359343, -0.999949, 0.0, 
+    0.0, 1000.0), (0.0011788838, -0.999994, 0.0, 0.0, 3000.0), (0.00058945312, 
+    -0.999999, 0.0, 0.0, 6000.0), (0.00035367331, -0.999999, 0.0, 0.0, 
+    10000.0), (9.7163202e-05, -1.0, 0.0, 0.0, 36400.0), (5.8945682e-05, -1.0, 
+    0.0, 0.0, 60000.0), (3.5367411e-05, -1.0, 0.0, 0.0, 100000.0)), time=
+    FREQUENCY_DATA)
+# Save by TDK on 2014_03_14-13.34.21; build 6.13-1 2013_05_15-22.28.56 126354

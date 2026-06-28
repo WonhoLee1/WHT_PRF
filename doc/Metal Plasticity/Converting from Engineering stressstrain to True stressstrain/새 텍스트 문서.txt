@@ -1,0 +1,30 @@
+
+In discussions of metal plasticity, and with focus on the typical yield-curve, there is a tremendous literature on the shape of this curve.  Many authors suggested analytical equations to describe the shape of the yield curve.  One of the earliest references is to Ludwik (1909), another common reference is to Hollomon (1945), both proposed a power-law form to describe the strain-hardening of metals.  Both of these equational forms are discussed in Wikipedia:  https://en.wikipedia.org/wiki/Work_hardening.  
+
+
+
+
+
+P. Ludwik, Elemente der Technologischen Mechanik, Springer, Berlin, 1909
+
+Hollomon J H 1945 Trans. Metall. Soc. AIME 162 268-90
+
+The book by Joeseph Datsko, 1966, Material Properties and Manufacturing Processes, section titled "The Strain-Hardening Equation", page 12, goes into a good bit of detail. He also gives a table of typical parameters for a variety of metals (Hollomon equation).
+
+Kleemola and Nieminen, 1974, On the Strain-Hardening Parameters of Metals.  This paper compares the use of the Ludwik, Hollomon, Swift, and Voce equational forms.
+
+An Excel-based lesson on using the Hollomon Power-Law (post to be developed).  For years I had used an Excel spreadsheet to determine the 2 parameters of the Hollomon power-law, either from test data, or from handbook data.  A significant difficulty was this also required the use of a UHARD user-sub.  A post will developed and referenced here in the future.
+
+There is a native material model in Abaqus, called the Johnson-Cook model, that looks similar to the Ludwik power-law equation. In fact, the Johnson-Cook material model is a super-set of the Ludwik equation.   We have developed an Abaqus/CAE plug-in to determine the Johnson-Cook power-law parameters from standard handbook data. A zip file is attached and you can put these files in your "abaqus_plugins" directory. With the plug-in installed, you will see a plug-in named "JC Constants Plug-in", as shown in the image below.  
+
+
+
+When you click on the plug-in, you will see this screen:
+
+
+
+This dialog box is populated with the handbook values of AL2024 aluminum.  When you press "OK", the plug-in calculates the Johnson-Cook constants of A, B and n.  The Poisson's ratio is not used to calculate the Johnson-Cook  parameters.  The Strain at Failure is only used to define the X-axis maximum for the stress-strain plot.
+
+
+
+If you please the "Yes" button, the plug-in runs a one-element model using this Johnson-Cook material and plots the stress-strain response. 
