@@ -45,6 +45,11 @@ def run_simulation():
     init_F_cr = jnp.stack([jnp.eye(3) for _ in range(num_nets)]) if num_nets > 0 else jnp.zeros((0, 3, 3))
     prev_state = {"F_cr": init_F_cr}
     
+    import jax
+    @jax.jit
+    def fast_step(current_input, control_flag, current_target, dt, total_time, state):
+        return solve_uniaxial_step(mat_data, current_input, control_flag, current_target, dt, total_time, state)
+    
     current_target_stress = 0.0
     current_F11 = 1.0
     
@@ -62,14 +67,13 @@ def run_simulation():
             current_target_stress = start_stress + (target_stress - start_stress) * ((i + 1) / 50)
         else:
             current_target_stress = target_stress
-        F_final, stress_final, prev_state = solve_uniaxial_step(
-            mat_data=mat_data,
-            input_val=current_F11,
-            control_flag=1.0, # force load control for these tests
-            target_value=current_target_stress,
-            dt=dt,
-            total_time=total_time,
-            prev_state=prev_state
+        F_final, stress_final, prev_state = fast_step(
+            current_F11,
+            1.0, # force load control for these tests
+            current_target_stress,
+            dt,
+            total_time,
+            prev_state
         )
         current_F11 = float(F_final[0,0])
         total_time += dt
@@ -90,14 +94,13 @@ def run_simulation():
             current_target_stress = start_stress + (target_stress - start_stress) * ((i + 1) / 50)
         else:
             current_target_stress = target_stress
-        F_final, stress_final, prev_state = solve_uniaxial_step(
-            mat_data=mat_data,
-            input_val=current_F11,
-            control_flag=1.0, # force load control for these tests
-            target_value=current_target_stress,
-            dt=dt,
-            total_time=total_time,
-            prev_state=prev_state
+        F_final, stress_final, prev_state = fast_step(
+            current_F11,
+            1.0, # force load control for these tests
+            current_target_stress,
+            dt,
+            total_time,
+            prev_state
         )
         current_F11 = float(F_final[0,0])
         total_time += dt
